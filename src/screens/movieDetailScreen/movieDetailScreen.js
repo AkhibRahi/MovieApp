@@ -1,8 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, Image, ActivityIndicator, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import styles from './style';
 import getMovies from '../../utils/constants/apiEndpoints';
-import { COLORS } from '../../themes/colors.';
+import {COLORS} from '../../themes/colors.';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MovieDetailScreen = ({route}) => {
   const {imdbID} = route.params;
@@ -12,10 +19,19 @@ const MovieDetailScreen = ({route}) => {
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
+        const cachedMovie = await AsyncStorage.getItem(`movie_${imdbID}`);
+        if (cachedMovie) {
+          setMovie(JSON.parse(cachedMovie));
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(getMovies.movieDetails(imdbID));
         const data = await response.json();
+
         if (data.Response === 'True') {
           setMovie(data);
+          await AsyncStorage.setItem(`movie_${imdbID}`, JSON.stringify(data));
         } else {
           console.error('Error fetching movie details:', data.Error);
         }
@@ -43,10 +59,16 @@ const MovieDetailScreen = ({route}) => {
 
   return (
     <ScrollView style={styles.container}>
-      {movie?.Poster !== 'N/A' && (
-        <Image source={{uri: movie?.Poster}} style={styles.poster} />
-      )}
-      
+      <Image
+        source={{
+          uri:
+            movie?.Poster !== 'N/A'
+              ? movie?.Poster
+              : 'https://m.media-amazon.com/images/M/MV5BNDMxN2FjMjAtNTQ4YS00MWE0LWIzMjktZjc0YTUxOTc5YWFkXkEyXkFqcGdeQXVyOTU3ODk4MQ@@._V1_SX300.jpg',
+        }}
+        style={styles.poster}
+      />
+
       <View style={styles.labelContainer}>
         {[
           {label: 'Title', value: movie?.Title},
@@ -62,9 +84,7 @@ const MovieDetailScreen = ({route}) => {
           },
         ].map((item, index) => (
           <View key={index} style={styles.labelView}>
-            <Text style={styles.labelText}>
-              {item.label}
-            </Text>
+            <Text style={styles.labelText}>{item.label}</Text>
             <Text style={[styles.info, {flexShrink: 1}]}>{item.value}</Text>
           </View>
         ))}

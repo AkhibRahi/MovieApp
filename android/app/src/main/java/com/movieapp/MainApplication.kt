@@ -12,14 +12,19 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 
+// ✅ Import AsyncStorage and NetInfo packages manually
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage
+import com.reactnativecommunity.netinfo.NetInfoPackage
+
 class MainApplication : Application(), ReactApplication {
 
   override val reactNativeHost: ReactNativeHost =
       object : DefaultReactNativeHost(this) {
         override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
-              // Packages that cannot be autolinked yet can be added manually here, for example:
-              // add(MyReactNativePackage())
+              // ✅ Manually added AsyncStorage and NetInfo
+              add(AsyncStoragePackage())
+              add(NetInfoPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"
